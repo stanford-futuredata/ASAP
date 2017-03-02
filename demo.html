@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>ASAP Demo</title>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+<script src="ASAP-simple.js" type="application/javascript"></script>
+<pre>
+<script>
+/* Main and test functions */
+
+function main() {
+	testACF();
+	testMetrics();
+	testSMA();
+	testSmooth();
+}
+
+function testMetrics() {
+	var real = new Array(100);
+	for (var i = 0; i < 100; i += 1) {
+		real[i] = i;
+	}
+	var data = {
+		x: real, y:real
+	};
+	var metrics = new Metrics(data.y);
+	console.log(Metrics.mean(data.y));
+	console.log(Metrics.std(data.y));
+	console.log(metrics.roughness());
+	console.log(metrics.kurtosis());
+}
+
+function testACF() {
+	var real = new Array(1000);
+	for (var i = 0; i < 1000; i += 1) {
+		if (i % 2 == 0) {
+			real[i] = 1;
+		} else {
+			real[i] = -1;
+		}
+	}
+	var acf = new ACF(real, 100);
+	acf.calculate();
+	acf.findPeaks();
+}
+
+function testSMA() {
+	var x = new Array(100);
+	var y = new Array(100);
+	for (var i = 0; i < 100; i += 1) {
+		x[i] = i;
+		y[i] = i;
+	}
+	var data = {x: x, y: y};
+	console.log(SMA(y, 10, 5));
+}
+
+//main();
+</script>
+</pre>
+
+<p>Select local CSV File:</p> <input id="csv" type="file"></input><br>
+
+<br><br>
+<div id="original" style="width:1000px;height:200px;"></div>
+<div id="smoothed" style="width:1000px;height:200px;"></div>
+<script>
+	var fileInput = document.getElementById("csv");
+
+	plot = function () {
+	    var reader = new FileReader();
+	    reader.onload = function () {
+	        var data = [];
+	        var allTextLines = reader.result.split(/\r\n|\n/);
+		    for (var i = 1; i < allTextLines.length; i++) {
+		        var cell = allTextLines[i].split(',');
+		        data.push(parseFloat(cell[cell.length - 1]))
+		    }
+	        var layout = {
+	        	xaxis: { fixedrange: true },
+	        	yaxis: { fixedrange: true },
+	        	margin: { t: 1 }
+            };
+		    Plotly.newPlot( document.getElementById('original'), [{
+				x: Array.apply(null, Array(data.length)).map(function (_, i) {return i;}),
+				y: data }], layout,
+				{title: 'Original'} );
+		    var y = smooth(data, 2000);
+			Plotly.newPlot( document.getElementById('smoothed'), [{
+				x: Array.apply(null, Array(y.length)).map(function (_, i) {return i;}),
+				y: y }], layout,
+				{title: 'Smoothed'}  );
+			};
+	    // start reading the file. When it is done, calls the onload event defined above.
+	    reader.readAsBinaryString(fileInput.files[0]);
+	};
+
+	fileInput.addEventListener('change', plot);
+</script>
+</body>
+</html>

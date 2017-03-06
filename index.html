@@ -12,17 +12,14 @@
 <script src="ASAP-optimized.js" type="application/javascript"></script>
 
 <div class="container">
-	<br>
-	<div class="jumbotron">
-	<h2 style="margin-top: -25px;">ASAP: Automatic Smoothing for Attention Prioritization in Time Series</h2>
-	<p class="lead">Remove short-term fluctuations while retaining large-scale deviations. More details are available in the <a href="https://arxiv.org/abs/1703.00983">paper</a>.</p>
-	<hr>
-	<h4>Code:</h4>
-	<ul style="margin-bottom: -40px;">
-		<li style="margin-bottom: -10px;"><p style="font-size:16px"><a href="ASAP-simple.js">Javascript (simple grid search)</a></p></li>
-		<li style="margin-bottom: -10px;" ><p style="font-size:16px"><a href="ASAP-optimized.js">Javascript (optimized search from paper)</a></p></li>
-		<li><p style="font-size:16px"><a href="https://github.com/kexinrong/macrobase/blob/ASAP-mb/contrib/src/main/java/macrobase/analysis/summarize/ASAP.java">MacroBase operator</a></p></li>
-	</ul>
+	<div class="jumbotron" style="margin-top: 20px; padding-top: 10px; padding-bottom: 10px;">
+	  <h2>ASAP: Automatic Smoothing for Attention Prioritization in Time Series</h2>
+	<div class="lead">
+	<p>ASAP automatically smoothes time series plots to remove short-term noise while retaining large-scale deviations.</p>
+	<p>A little smoothing can go a long way: try ASAP below!</p>
+	<p>Empirically, ASAP can improve accuracy by up to 38.4% while reducing response times by up to 44.3%.</p>
+	<p><a href="https://arxiv.org/pdf/1703.00983.pdf">Our recent paper</a> has the details. <a href="#code">Code below</a>.</p>
+	</div>
 	</div>
 
 	<h3>Demo</h3>
@@ -36,17 +33,27 @@
 	  	</button>
 	</li>	<br>
 
-	<li style="font-size:18px"> Try on your own: 
-	<ul>
-		<li style="padding-top: 2px;padding-bottom: 5px;font-size:16px">Select CSV File:&nbsp&nbsp&nbsp <input id="csv" type="file" style="display:inline"/></li>
-		<li style="font-size:16px">Target resolution:&nbsp&nbsp&nbsp<input type="text" id="pixels" value="1000"> pixels </li>
+	<li style="font-size:18px; margin-bottom: 10px;"> Try on your own: 
+	<ul style="margin-bottom: 10px;">
+		<li style="padding-top: 2px;padding-bottom: 5px;font-size:16px">Select CSV File <span style="font-size: 80%">(e.g., <a href="Taxi.csv">1</a>, <a href="Temp.csv">2</a>, <a href="Power.csv">3</a>)</span>:&nbsp <input id="csv" type="file" style="display:inline"/></li>
+		<li style="font-size:16px">Target resolution:&nbsp<input type="text" id="pixels" value="1000"> pixels </li>
 		</ul>
 		<button type="button" class="btn btn-primary" onclick="plot()">Smooth!</button>
 		</li>
 	</ul>
 	<div id="original" style="width:1000px;height:250px;"></div>
 	<div id="smoothed" style="width:1000px;height:250px;"></div>
-	<p style="font-size:16px;margin-top: -5px">*Link to example time series: <a href="Taxi.csv">taxi trips</a>, <a href="Temp.csv">temperature readings</a>, <a href="Power.csv">power consumption</a></p>
+
+		<hr>
+	<h3 id="code" style="margin-bottom: 10px;">Code:</h3>
+	<ul>
+		<li style="margin-bottom: -10px;"><p style="font-size:16px"><a href="https://github.com/stanford-futuredata/ASAP/blob/master/ASAP-simple.js">Javascript (simple grid search)</a></p></li>
+		<li style="margin-bottom: -10px;" ><p style="font-size:16px"><a href="https://github.com/stanford-futuredata/ASAP/blob/master/ASAP-optimized.js">Javascript (optimized search from paper)</a></p></li>
+		<li><p style="font-size:16px"><a href="https://github.com/kexinrong/macrobase/blob/ASAP-mb/contrib/src/main/java/macrobase/analysis/summarize/ASAP.java">MacroBase operator</a></p></li>
+	</ul>
+
+	<hr style="margin-bottom: 10px;">
+	<p style="text-align: right;">From <a href="https://kexinrong.github.io/">Kexin Rong</a>, <a href="http://futuredata.stanford.edu">Stanford Future Data Systems</a>. See you at <a href="monitorama.com/#speakers">Monitorama 2017!</a></p>
 </div>
 
 <script>

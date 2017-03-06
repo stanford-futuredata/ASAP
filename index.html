@@ -11,34 +11,40 @@
 <script src="ASAP-optimized.js" type="application/javascript"></script>
 
 <div class="container">
+	<br>
+	<div class="jumbotron">
+	<h2 style="margin-top: -25px;">ASAP: Automatic Smoothing for Attention Prioritization in Time Series</h2>
+	<p class="lead">Remove short-term fluctuations while retaining large-scale deviations. More details are available in the <a href="https://arxiv.org/abs/1703.00983">paper</a>.</p>
+	<hr>
+	<h4>Code:</h4>
+	<ul style="margin-bottom: -40px;">
+		<li style="margin-bottom: -10px;"><p style="font-size:16px"><a href="ASAP-simple.js">Javascript (simple grid search)</a></p></li>
+		<li style="margin-bottom: -10px;" ><p style="font-size:16px"><a href="ASAP-optimized.js">Javascript (optimized search from paper)</a></p></li>
+		<li><p style="font-size:16px"><a href="https://github.com/kexinrong/macrobase/blob/ASAP-mb/contrib/src/main/java/macrobase/analysis/summarize/ASAP.java">MacroBase operator</a></p></li>
+	</ul>
+	</div>
 
-  <br>
-        <div class="jumbotron">
+	<h3>Demo</h3>
+	<p style="font-size:16px">Example time series: <a href="Temp.csv">temperature readings</a>, <a href="Taxi.csv">taxi rides</a>, <a href="Power.csv">power consumption</a></p>
+	<ul>
+	<li style="padding-bottom: 5px;font-size:16px">Select CSV File:&nbsp&nbsp&nbsp <input id="csv" type="file" style="display:inline"/></li>
+	<li style="font-size:16px">Target resolution:&nbsp&nbsp&nbsp<input type="text" id="pixels" value="1000"> pixels</li>
+	</ul>
+	<button type="button" onclick="plot()">Smooth!</button> <br>
 
-<h2>ASAP: Automatic Smoothing for Attention Prioritization in Time Series</h2>
-
-<h3><a href="extended.pdf">Paper</a></h3>
-<hr>
-<h3>Code:</h3>
-<p><a href="ASAP-simple.js">Javascript (simple grid search)</a></p>
-<p><a href="ASAP-optimized.js">Javascript (optimized search from paper)</a></p>
-<p><a href="https://github.com/kexinrong/macrobase/blob/ASAP-mb/contrib/src/main/java/macrobase/analysis/summarize/ASAP.java">MacroBase operator</a></p>
-</div>
-<h3>Demo</h3>
-<p>Select local CSV File to be smoothed:</p> <input id="csv" type="file"></input><br>
-<p>Example CSV: <a href="Temp.csv">temperature readings</a></p>
-<p>Example CSV: <a href="Taxi.csv">taxicab rides</a></p>
-<br><br>
-<div id="original" style="width:1000px;height:300px;"></div>
-<div id="smoothed" style="width:1000px;height:300px;"></div>
+	<div id="original" style="width:1000px;height:250px;"></div>
+	<div id="smoothed" style="width:1000px;height:250px;"></div>
 </div>
 
 <script>
 	var fileInput = document.getElementById("csv");
-
+	var resolution = document.getElementById("pixels");
+    var reader = new FileReader();
 	plot = function () {
-	    var reader = new FileReader();
+	    // start reading the file. When it is done, calls the onload event defined above.
+	    reader.readAsBinaryString(fileInput.files[0]);
 	    reader.onload = function () {
+			var pixels = resolution.value;
 	        var data = [];
 	        var allTextLines = reader.result.split(/\r\n|\n/);
 		    for (var i = 1; i < allTextLines.length; i++) {
@@ -54,18 +60,13 @@
 		    Plotly.newPlot( document.getElementById('original'), [{
 				x: Array.apply(null, Array(data.length)).map(function (_, i) {return i;}),
 				y: data }], layout );
-
-                    layout.title = 'ASAP (Smoothed Series)';
-		    var y = smooth(data, 2000);
+            layout.title = 'ASAP (Smoothed Series)';
+		    var y = smooth(data, pixels);
 			Plotly.newPlot( document.getElementById('smoothed'), [{
 				x: Array.apply(null, Array(y.length)).map(function (_, i) {return i;}),
 				y: y }], layout  );
 			};
-	    // start reading the file. When it is done, calls the onload event defined above.
-	    reader.readAsBinaryString(fileInput.files[0]);
 	};
-
-	fileInput.addEventListener('change', plot);
 </script>
 </body>
 </html>

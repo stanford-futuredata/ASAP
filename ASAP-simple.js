@@ -16,7 +16,6 @@ function smooth(data, resolution) {
             }
         }
     }
-    console.log(originalKurt, windowSize);
     return SMA(data, windowSize, 1);
 }
 

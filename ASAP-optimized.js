@@ -218,7 +218,7 @@ function convolveComplex(xreal, ximag, yreal, yimag, outreal, outimag) {
 
 function binarySearch(head, tail, data, minObj, originalKurt, windowSize) {
     while (head <= tail) {
-        var w = (head + tail) / 2;
+        var w = Math.round((head + tail) / 2);
         var smoothed = SMA(data, w, 1);
         var metrics = new Metrics(smoothed);
         if (metrics.kurtosis() >= originalKurt) { /* Search second half if feasible */
@@ -246,7 +246,7 @@ function smooth(data, resolution) {
     var windowSize = 1;
     var lb = 1;
     var largestFeasible = -1;
-    var tail = data.length;
+    var tail = data.length / 10;
     for (var i = peaks.length - 1; i >= 0; i -=1) {
         var w = peaks[i];
         if (w < lb || w == 1) {

@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>ASAP Demo</title>
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 
 </head>
@@ -25,38 +26,82 @@
 	</div>
 
 	<h3>Demo</h3>
-	<p style="font-size:16px">Example time series: <a href="Temp.csv">temperature readings</a>, <a href="Taxi.csv">taxi rides</a>, <a href="Power.csv">power consumption</a></p>
 	<ul>
-	<li style="padding-bottom: 5px;font-size:16px">Select CSV File:&nbsp&nbsp&nbsp <input id="csv" type="file" style="display:inline"/></li>
-	<li style="font-size:16px">Target resolution:&nbsp&nbsp&nbsp<input type="text" id="pixels" value="1000"> pixels</li>
-	</ul>
-	<button type="button" onclick="plot()">Smooth!</button> <br>
+	<li style="font-size:18px"> Examples: 
+	  	<button class="btn btn-primary" id="data0" onclick="plotExample(0)">Taxi Trips
+	  	</button>
+	  	<button class="btn btn-primary" id="data1" onclick="plotExample(1)">Temperature
+	  	</button>
+	  	<button class="btn btn-primary" id="data2" onclick="plotExample(2)">Power Consumption
+	  	</button>
+	</li>	<br>
 
+	<li style="font-size:18px"> Try on your own: 
+	<ul>
+		<li style="padding-top: 2px;padding-bottom: 5px;font-size:16px">Select CSV File:&nbsp&nbsp&nbsp <input id="csv" type="file" style="display:inline"/></li>
+		<li style="font-size:16px">Target resolution:&nbsp&nbsp&nbsp<input type="text" id="pixels" value="1000"> pixels </li>
+		</ul>
+		<button type="button" class="btn btn-primary" onclick="plot()">Smooth!</button>
+		</li>
+	</ul>
 	<div id="original" style="width:1000px;height:250px;"></div>
 	<div id="smoothed" style="width:1000px;height:250px;"></div>
+	<p style="font-size:16px;margin-top: -5px">*Link to example time series: <a href="Taxi.csv">taxi trips</a>, <a href="Temp.csv">temperature readings</a>, <a href="Power.csv">power consumption</a></p>
 </div>
 
 <script>
+	var examples = [
+		"https://raw.githubusercontent.com/stanford-futuredata/ASAP/master/Taxi.csv",
+		"https://raw.githubusercontent.com/stanford-futuredata/ASAP/master/Temp.csv",
+		"https://raw.githubusercontent.com/stanford-futuredata/ASAP/master/Power.csv"
+	];
 	var fileInput = document.getElementById("csv");
 	var resolution = document.getElementById("pixels");
     var reader = new FileReader();
+    var layout = {
+    	xaxis: { fixedrange: true },
+    	yaxis: { fixedrange: true },
+    	margin: { t: 30 }
+    };
+
+    read = function (reader) {
+    	var data = [];
+        var allTextLines = reader.result.split(/\r\n|\n/);
+	    for (var i = 1; i < allTextLines.length; i++) {
+	        var cell = allTextLines[i].split(',');
+	        data.push(parseFloat(cell[cell.length - 1]))
+	    }
+	    return data;
+    }
+
+	plotExample = function (id) {
+	    var request = new XMLHttpRequest();
+		request.open('GET', examples[id], true);
+		request.responseType = 'blob';
+		request.onload = function() {
+		    reader.readAsBinaryString(request.response);
+		    reader.onload = function () {
+		        var data = read(reader);
+	            layout.title = 'Original (Raw Series)';
+			    Plotly.newPlot( document.getElementById('original'), [{
+					x: Array.apply(null, Array(data.length)).map(function (_, i) {return i;}),
+					y: data }], layout );
+	            layout.title = 'ASAP (Smoothed Series)';
+			    var y = smooth(data, 1000);
+				Plotly.newPlot( document.getElementById('smoothed'), [{
+					x: Array.apply(null, Array(y.length)).map(function (_, i) {return i;}),
+					y: y }], layout);
+				};
+			};
+		request.send();
+	};
+
 	plot = function () {
-	    // start reading the file. When it is done, calls the onload event defined above.
 	    reader.readAsBinaryString(fileInput.files[0]);
+		var pixels = resolution.value;
 	    reader.onload = function () {
-			var pixels = resolution.value;
-	        var data = [];
-	        var allTextLines = reader.result.split(/\r\n|\n/);
-		    for (var i = 1; i < allTextLines.length; i++) {
-		        var cell = allTextLines[i].split(',');
-		        data.push(parseFloat(cell[cell.length - 1]))
-		    }
-	        var layout = {
-	        	xaxis: { fixedrange: true },
-	        	yaxis: { fixedrange: true },
-	        	margin: { t: 30 },
-                        title: 'Original (Raw Series)'
-            };
+	        var data = read(reader);
+            layout.title = 'Original (Raw Series)';
 		    Plotly.newPlot( document.getElementById('original'), [{
 				x: Array.apply(null, Array(data.length)).map(function (_, i) {return i;}),
 				y: data }], layout );
@@ -67,6 +112,18 @@
 				y: y }], layout  );
 			};
 	};
+
+	$(".btn").click(function() {
+	  $(":button").removeClass("active");
+	  $(this).addClass("active");
+	});
+
+	$( window ).on( "load", function() {
+		$("#data0").addClass("active");
+	    plotExample(0);
+	});
 </script>
+
+
 </body>
 </html>

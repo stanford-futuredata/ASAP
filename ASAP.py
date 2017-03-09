@@ -62,7 +62,7 @@ def SMA(data, _range, slide):
     window_start = 0
     for i in range(len(data)):
         if i-window_start >= _range or i==len(data)-1:
-            if i==len(data)-1:
+            if i==len(data)-1 or c==0:
                 s += data[i]
                 c += 1
             ret.append( s/c )
@@ -173,6 +173,98 @@ class ACF(Metrics):
                             self.max_acf = self.correlations[max]
                     positive = not positive
 
+def _show_summary(args):
+    def _show_list(x, max=8):
+        if not x:
+            return '[]'
+        def _show_item(y):
+            try: return '{0:0.2f}'.format(y)
+            except: return y
+
+        if len(x) > max:
+            x = x[0:max] + ['...|{0}|'.format(len(x))]
+        return ', '.join([_show_item(y) for y in x ])
+
+    m = ACF(args.test_data)
+    print("dat:          {0}".format(_show_list(args.test_data)))
+    print("mean:         {0}".format(m.mean))
+    print("variance:     {0}".format(m.var))
+    print("stddev        {0}".format(m.std))
+    print("u2:           {0}".format(m.u2))
+    print("u4:           {0}".format(m.u4))
+    print("kurtosis:     {0}".format(m.kurtosis))
+    print("diff:         {0}".format(_show_list(m.diffs)))
+    print("roughness:    {0}".format(m.roughness))
+    print("max_acf:      {0}".format(m.max_acf))
+    print("correlations: {0}".format(_show_list(m.correlations)))
+    print("peaks:        {0}".format(_show_list(m.peaks)))
+
+    print("SMA(3,1):     {0}".format( _show_list(SMA(args.test_data, 3,1)) ))
+    print("SMA(4,2):     {0}".format( _show_list(SMA(args.test_data, 4,2)) ))
+    print("smooth():     {0}".format( _show_list(smooth( args.test_data, args.resolution )) ))
+
+def _read_input_csv(args):
+    import csv
+    with open(args.input_csv, 'r') as ifh:
+        icsv = csv.reader(ifh)
+        head = icsv.next()
+        rows = list(icsv)
+
+        try:
+            data = [ float(x[args.input_column]) for x in rows ]
+        except ValueError:
+            print("couldn't convert input-column={0} float".format(args.input_column))
+            if rows:
+                print("first row:")
+                for idx,x in enumerate(rows[0]):
+                    print('  column {:3d}: {}'.format(idx,x))
+            exit(1)
+
+def _write_output_table(args):
+    sdat = smooth(args.test_data, args.resolution)
+
+    if args.no_join:
+        if args.output_csv:
+            with open(args.output_csv,'w') as ofh:
+                ocsv = csv.writer(ofh)
+                ocsv.writerow(['idx', 'smoothed'])
+                for t in enumerate(sdat):
+                    ocsv.writerow(t)
+        else:
+            print('\t'.join(['idx','smoothed']))
+            for t in enumerate(sdat):
+                print('\t'.join([str(x) for x in t]))
+        exit(0)
+
+    head.append('smothed')
+
+    if args.output_csv:
+        if args.output_csv == '-':
+            import sys
+            ofh = sys.stdout
+        else:
+            ofh = open(args.output_csv,'w')
+        ocsv = csv.writer(ofh)
+        ocsv.writerow(head)
+    else:
+        ocsv = False
+        print( '\t'.join(head) )
+
+    scale = float(len(sdat)) / len(data)
+
+    i = 0
+    for r in rows:
+        j = int(i * scale)
+        r.append(sdat[j])
+        if ocsv:
+            ocsv.writerow(r)
+        else:
+            print( '\t'.join([str(x) for x in r]) )
+        i += 1
+
+    if ocsv:
+        ofh.close()
+
 
 if __name__ == '__main__':
     def_test_data = [1,2,3,4,5,6,7, 57]
@@ -189,6 +281,7 @@ if __name__ == '__main__':
         parser.add_argument('-c', '--input-column', type=int, default=1,
             help='column of input csv to use as data [default: %(default)s]')
         parser.add_argument('-j', '--no-join', action='store_true', help='do not attempt to scale and fit output csv data to input csv data')
+        parser.add_argument('-s', '--show-summary', action='store_true', help="don't output a table, just show a test summary")
         parser.add_argument('-r', '--resolution', type=int, default=1000,
             help='resolution for smooth() [default: %(default)s]')
         parser.add_argument('test_data', default=def_test_data,
@@ -205,85 +298,14 @@ if __name__ == '__main__':
         import collections
         args = collections.namedtuple('args', blah.keys())(**blah)
 
+    if not args.input_csv and not args.show_summary:
+        args.show_summary = True
+
     if args.input_csv:
-        import csv
-        with open(args.input_csv, 'r') as ifh:
-            icsv = csv.reader(ifh)
-            head = icsv.next()
-            rows = [ x for x in icsv ]
+        _read_input_csv( args )
 
-            try:
-                data = [ float(x[args.input_column]) for x in rows ]
-            except ValueError:
-                print("couldn't convert input-column={0} float".format(args.input_column))
-                exit(1)
+        if not args.show_summary:
+            _write_output_table( args )
 
-            sdat = smooth(data, args.resolution)
-
-            if args.no_join:
-                if args.output_csv:
-                    with open(args.output_csv,'w') as ofh:
-                        ocsv = csv.writer(ofh)
-                        ocsv.writerow(['idx', 'smoothed'])
-                        for t in enumerate(sdat):
-                            ocsv.writerow(t)
-                else:
-                    print('\t'.join(['idx','smoothed']))
-                    for t in enumerate(sdat):
-                        print('\t'.join([str(x) for x in t]))
-                exit(0)
-
-            head.append('smothed')
-
-            if args.output_csv:
-                ofh = open(args.output_csv,'w')
-                ocsv = csv.writer(ofh)
-                ocsv.writerow(head)
-            else:
-                ocsv = False
-                print( '\t'.join(head) )
-
-            scale = float(len(sdat)) / len(data)
-
-            i = 0
-            for r in rows:
-                j = int(i * scale)
-                r.append(sdat[j])
-                if ocsv:
-                    ocsv.writerow(r)
-                else:
-                    print( '\t'.join([str(x) for x in r]) )
-                i += 1
-
-            if ocsv:
-                ofh.close()
-
-    else:
-        def _show_list(x, max=8):
-            if not x:
-                return '[]'
-            def _show_item(y):
-                try: return '{0:0.2f}'.format(y)
-                except: return y
-
-            if len(x) > max:
-                x = x[0:max] + ['...|{0}|'.format(len(x))]
-            return ', '.join([_show_item(y) for y in x ])
-
-        m = ACF(args.test_data)
-        print("dat:          {0}".format(_show_list(args.test_data)))
-        print("mean:         {0}".format(m.mean))
-        print("variance:     {0}".format(m.var))
-        print("stddev        {0}".format(m.std))
-        print("u2:           {0}".format(m.u2))
-        print("u4:           {0}".format(m.u4))
-        print("kurtosis:     {0}".format(m.kurtosis))
-        print("diff:         {0}".format(_show_list(m.diffs)))
-        print("roughness:    {0}".format(m.roughness))
-        print("max_acf:      {0}".format(m.max_acf))
-        print("correlations: {0}".format(_show_list(m.correlations)))
-        print("peaks:        {0}".format(_show_list(m.peaks)))
-
-        print("SMA(3,1):     {0}".format( _show_list(SMA(args.test_data, 3,1)) ))
-        print("SMA(4,2):     {0}".format( _show_list(SMA(args.test_data, 4,2)) ))
-        print("smooth():     {0}".format( _show_list(smooth( args.test_data, args.resolution )) ))
+    if args.show_summary:
+        _show_summary(args)

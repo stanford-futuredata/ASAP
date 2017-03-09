@@ -207,20 +207,22 @@ def _read_input_csv(args):
     import csv
     with open(args.input_csv, 'r') as ifh:
         icsv = csv.reader(ifh)
-        head = icsv.next()
-        rows = list(icsv)
+        args._head = icsv.next()
+        args._rows = list(icsv)
 
         try:
-            data = [ float(x[args.input_column]) for x in rows ]
+            data = [ float(x[args.input_column]) for x in args._rows ]
+            args.test_data = data
         except ValueError:
             print("couldn't convert input-column={0} float".format(args.input_column))
-            if rows:
+            if args._rows:
                 print("first row:")
-                for idx,x in enumerate(rows[0]):
+                for idx,x in enumerate(args._rows[0]):
                     print('  column {:3d}: {}'.format(idx,x))
             exit(1)
 
 def _write_output_table(args):
+
     sdat = smooth(args.test_data, args.resolution)
 
     if args.no_join:
@@ -236,7 +238,7 @@ def _write_output_table(args):
                 print('\t'.join([str(x) for x in t]))
         exit(0)
 
-    head.append('smothed')
+    args._head.append('smothed')
 
     if args.output_csv:
         if args.output_csv == '-':
@@ -245,15 +247,15 @@ def _write_output_table(args):
         else:
             ofh = open(args.output_csv,'w')
         ocsv = csv.writer(ofh)
-        ocsv.writerow(head)
+        ocsv.writerow(args._head)
     else:
         ocsv = False
-        print( '\t'.join(head) )
+        print( '\t'.join(args._head) )
 
-    scale = float(len(sdat)) / len(data)
+    scale = float(len(sdat)) / len(args.test_data)
 
     i = 0
-    for r in rows:
+    for r in args._rows:
         j = int(i * scale)
         r.append(sdat[j])
         if ocsv:

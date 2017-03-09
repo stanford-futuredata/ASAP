@@ -222,7 +222,6 @@ def _read_input_csv(args):
             exit(1)
 
 def _write_output_table(args):
-
     sdat = smooth(args.test_data, args.resolution)
 
     if args.no_join:
@@ -245,6 +244,7 @@ def _write_output_table(args):
             import sys
             ofh = sys.stdout
         else:
+            import csv
             ofh = open(args.output_csv,'w')
         ocsv = csv.writer(ofh)
         ocsv.writerow(args._head)
@@ -266,7 +266,6 @@ def _write_output_table(args):
 
     if ocsv:
         ofh.close()
-
 
 if __name__ == '__main__':
     def_test_data = [1,2,3,4,5,6,7, 57]

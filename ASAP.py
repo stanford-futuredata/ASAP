@@ -216,6 +216,7 @@ if __name__ == '__main__':
                 data = [ float(x[args.input_column]) for x in rows ]
             except ValueError:
                 print("couldn't convert input-column={0} float".format(args.input_column))
+                exit(1)
 
             sdat = smooth(data, args.resolution)
 

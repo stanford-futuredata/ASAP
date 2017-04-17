@@ -75,6 +75,18 @@ def SMA(data, _range, slide):
         c += 1
     return ret
 
+def moving_average(data, _range):
+    ret = numpy.cumsum(data, dtype=float)
+    ret[_range:] = ret[_range:] - ret[:-_range]
+    return ret[_range - 1:] / _range
+
+def moving_average_slide(data, _range, slide):
+    return moving_average(data, _range)[::slide]
+
+x = [42,75,3,5,99,22,88]
+assert SMA(x,3,1) == list(moving_average_slide(x,3,1))
+assert SMA(x,3,3) == list(moving_average_slide(x,3,3))
+
 class Metrics(object):
     def __init__(self, values):
         self.set_values( values )

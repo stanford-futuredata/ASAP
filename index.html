@@ -5,7 +5,9 @@
 <title>ASAP Demo</title>
 <script src="plotly-latest.min.js"></script>
 <script src="jquery.min.js"></script>
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<script src="machine_array.txt"></script>
+
+<link  rel="stylesheet" href="bootstrap.min.css" >
 
 </head>
 <body>
@@ -26,13 +28,22 @@
 
 		<div id="original" style="width:1000px;height:250px;"></div>
 	<div id="smoothed" style="width:1000px;height:250px;"></div>
+	<div>
+		<p><b>Note:</b></p>
+		<ul style="columns: 2;">
+			<li>ASAP is more legible</li>
+			<li>No parameter tuning required</li>
+			<li>Interactive speed</li>
+			<li>Lightweight enough to run in browser</li>
+		</ul>	 
+	</div>
 
 <script>
 	var windowSize = 1000;
-	var stepSize = 2;
-	var updateTimeMs = 100;
+	var stepSize = 1;
+	var updateTimeMs = 50;
 
-	var data = Array.from(new Array(100000),(val,index)=>Math.random());
+	//var data = Array.from(new Array(100000),(val,index)=>Math.random());
 
 	var resolution = 800;
 	var layout = {

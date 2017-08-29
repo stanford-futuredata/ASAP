@@ -24,71 +24,63 @@
 	</div>
 	</div>
 
+		<div id="original" style="width:1000px;height:250px;"></div>
+	<div id="smoothed" style="width:1000px;height:250px;"></div>
+
 <script>
-	var file = "Taxi.csv";
+	var windowSize = 1000;
+	var stepSize = 2;
+	var updateTimeMs = 100;
+
+	var data = Array.from(new Array(100000),(val,index)=>Math.random());
+
 	var resolution = 800;
-    var reader = new FileReader();
-    var layout = {
-    	xaxis: { fixedrange: true },
-    	yaxis: { fixedrange: true },
-    	margin: { t: 30 }
-    };
-
-    read = function (reader) {
-    	var data = [];
-        var allTextLines = reader.result.split(/\r\n|\n/);
-	    for (var i = 1; i < allTextLines.length; i++) {
-	        var cell = allTextLines[i].split(',');
-	        data.push(parseFloat(cell[cell.length - 1]))
-	    }
-	    return data;
-	}
-
-	plotExample = function (id) {
-	var reader = new FileReader();
-		    reader.onload = function () {
-		        var data = read(reader);
-	            layout.title = 'Original (Raw Series)';
-			    Plotly.newPlot( document.getElementById('original'), [{
-					x: Array.apply(null, Array(data.length)).map(function (_, i) {return i;}),
-					y: data }], layout );
-	            layout.title = 'ASAP (Smoothed Series)';
-			    var y = smooth(data, 1000);
-				Plotly.newPlot( document.getElementById('smoothed'), [{
-					x: Array.apply(null, Array(y.length)).map(function (_, i) {return i;}),
-					y: y }], layout);
-				};
-			reader.readAsText("File.csv");
-			};
-
-
-
-	plot = function () {
-	    reader.readAsBinaryString(fileInput.files[0]);
-		var pixels = resolution.value;
-	    reader.onload = function () {
-	        var data = read(reader);
-            layout.title = 'Original (Raw Series)';
-		    Plotly.newPlot( document.getElementById('original'), [{
-				x: Array.apply(null, Array(data.length)).map(function (_, i) {return i;}),
-				y: data }], layout );
-            layout.title = 'ASAP (Smoothed Series)';
-		    var y = smooth(data, pixels);
-			Plotly.newPlot( document.getElementById('smoothed'), [{
-				x: Array.apply(null, Array(y.length)).map(function (_, i) {return i;}),
-				y: y }], layout  );
-			};
+	var layout = {
+	  xaxis: { fixedrange: true },
+	  yaxis: { fixedrange: true },
+	  margin: { t: 30 }
 	};
 
-	$(".btn").click(function() {
-	  $(":button").removeClass("active");
-	  $(this).addClass("active");
-	});
 
-	$( window ).on( "load", function() {
-		$("#data0").addClass("active");
-	    plotExample(0);
-	});
+	$( document ).ready(function() {
+		var startdata = data.slice(0, windowSize);
+
+		console.log(startdata);
+
+		var xs = Array.apply(null, Array(windowSize)).map(function (_, i) {return i;});
+
+	    console.log( "ready!" );
+		layout.title = 'Original (Raw Series)';
+		Plotly.newPlot( document.getElementById('original'), [{
+			x: xs,
+			y: startdata }], layout );
+
+		layout.title = 'ASAP (Smoothed Series)';	
+		var y = smooth(startdata, 1000);
+		Plotly.newPlot( document.getElementById('smoothed'), [{
+			x: xs,
+			y: y }], layout);
+
+		var cnt = 1;
+
+		var intervalID = setInterval(function(){
+			console.log("SUP", cnt);
+			cnt += 1;
+			var curData = data.slice(cnt*stepSize, cnt*stepSize+windowSize);
+			console.log(curData);
+			var curDataSmoothed = smooth(curData, 1000);
+
+			layout.title = 'Original (Raw Series)';
+			Plotly.restyle(document.getElementById('original'),
+						  'y', [curData]);
+
+			layout.title = 'ASAP (Smoothed Series)';	
+			Plotly.restyle(document.getElementById('smoothed'),
+						  'y',
+						  [curDataSmoothed]);
+		}, updateTimeMs);
+
+		});
 </script>
 
 

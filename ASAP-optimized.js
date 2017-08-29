@@ -236,7 +236,7 @@ function binarySearch(head, tail, data, minObj, originalKurt, windowSize) {
 }
 
 
-function smooth(data, resolution) {
+function smooth(data, resolution, prevWindow) {
     data = SMA(data, Math.trunc(data.length / resolution), Math.trunc(data.length / resolution));
     var acf = new ACF(data, Math.round(data.length / 10));
     var peaks = acf.findPeaks();
@@ -269,7 +269,8 @@ function smooth(data, resolution) {
         lb = Math.max(lb, peaks[largestFeasible] + 1);
     }
     windowSize = binarySearch(lb, tail, data, minObj, originalKurt, windowSize);
-    return SMA(data, windowSize, 1);
+    return {'smoothed': SMA(data, windowSize, 1), 
+        'window': windowSize};
 }
 
 

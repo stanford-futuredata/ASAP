@@ -6,7 +6,7 @@
 <script src="plotly-latest.min.js"></script>
 <script src="jquery.min.js"></script>
 <script src="machine_array.txt"></script>
-
+<link  rel="stylesheet" href="divs.css" >
 <link  rel="stylesheet" href="bootstrap.min.css" >
 
 </head>
@@ -14,81 +14,71 @@
 <script src="ASAP-optimized.js" type="application/javascript"></script>
 
 <div class="container">
-	<div class="jumbotron" style="margin-top: 20px; padding-top: 10px; padding-bottom: 10px;">
-	  <h2>ASAP: Automatic Smoothing for Attention Prioritization in Time Series</h2>
-	<div class="lead">
-	<p>ASAP automatically smoothes time series plots to remove short-term noise while retaining large-scale deviations.</p>
-	<p>A little smoothing can go a long way: try ASAP below!</p>
-	<p>Empirically, ASAP can improve accuracy by up to 38.4% while reducing response times by up to 44.3%.</p>
-	<p>Check out our <a href="https://arxiv.org/pdf/1703.00983.pdf">paper</a> and the Monitorama <a href="https://vimeo.com/221062931">talk</a> for details.
-	 [<a href="https://speakerdeck.com/futuredata/automating-dashboard-displays-with-asap">slides</a>]  [<a href="#code">code</a>]  [<a href="http://dawn.cs.stanford.edu/2017/08/07/asap/">blog post</a>]
-	</p>
-	</div>
-	</div>
-
-		<div id="original" style="width:1000px;height:250px;"></div>
-	<div id="smoothed" style="width:1000px;height:250px;"></div>
-	<div>
-		<p><b>Note:</b></p>
-		<ul style="columns: 2;">
-			<li>ASAP is more legible</li>
-			<li>No parameter tuning required</li>
-			<li>Interactive speed</li>
-			<li>Lightweight enough to run in browser</li>
-		</ul>	 
-	</div>
+	<div id="sides" style="margin-top: 100px">
+		<div id='left'>
+			<div id="original" style="width:100%;height:200px;float:left"></div>
+			<div id="smoothed" style="width:100%;height:200px;float:left"></div>
+		</div>
+		<div id='right' class="lead">
+			<p><b>Note:</b></p>
+			<ul class="list-group">
+				<li class="list-group-item">ASAP is more legible</li>
+				<li class="list-group-item">No parameter tuning required</li>
+				<li class="list-group-item">Interactive speed</li>
+				<li class="list-group-item">Lightweight enough to run in browser</li>
+			</ul>
+		</div>
 
 <script>
-	var windowSize = 1000;
-	var stepSize = 1;
-	var updateTimeMs = 50;
-
-	//var data = Array.from(new Array(100000),(val,index)=>Math.random());
+	var windowSize = 3000;
+	var stepSize = 12;
+	var updateTimeMs = 150;
+	var offset = 0;
+	var targetRes = 1000;
 
 	var resolution = 800;
-	var layout = {
-	  xaxis: { fixedrange: true },
-	  yaxis: { fixedrange: true },
-	  margin: { t: 30 }
+	var orig_layout = {
+	  title: 'Original (Raw Series)',
+	  xaxis: { range: [0, 1000] },
+	  yaxis: { range: [0, 110], showticklabels: false },
+	  margin: { t: 30, l: 20, b: 30 }
+	};
+	var smoothed_layout = {
+	  title: 'ASAP (Smoothed Series)',
+	  xaxis: { range: [0, 1000] },
+	  yaxis: {showticklabels: false },
+	  margin: { t: 30, l: 20 }
 	};
 
 
 	$( document ).ready(function() {
-		var startdata = data.slice(0, windowSize);
-
-		console.log(startdata);
+		var startdata = data.slice(offset, offset + windowSize);
 
 		var xs = Array.apply(null, Array(windowSize)).map(function (_, i) {return i;});
+		var original_xs = Array.apply(
+			null, Array(windowSize)).map(function (_, i) {return i * targetRes * 1.0 / windowSize;});
 
-	    console.log( "ready!" );
-		layout.title = 'Original (Raw Series)';
 		Plotly.newPlot( document.getElementById('original'), [{
-			x: xs,
-			y: startdata }], layout );
+			x: original_xs,
+			y: startdata }], orig_layout );
 
-		layout.title = 'ASAP (Smoothed Series)';	
-		var y = smooth(startdata, 1000);
+		var results = smooth(startdata, targetRes, 1);
 		Plotly.newPlot( document.getElementById('smoothed'), [{
 			x: xs,
-			y: y }], layout);
+			y: results.smoothed }], smoothed_layout);
 
 		var cnt = 1;
 
 		var intervalID = setInterval(function(){
-			console.log("SUP", cnt);
 			cnt += 1;
-			var curData = data.slice(cnt*stepSize, cnt*stepSize+windowSize);
-			console.log(curData);
-			var curDataSmoothed = smooth(curData, 1000);
+			var curData = data.slice(offset + cnt*stepSize, offset + cnt*stepSize+windowSize);
+			results = smooth(curData, targetRes, results.window);
 
-			layout.title = 'Original (Raw Series)';
 			Plotly.restyle(document.getElementById('original'),
 						  'y', [curData]);
 
-			layout.title = 'ASAP (Smoothed Series)';	
 			Plotly.restyle(document.getElementById('smoothed'),
-						  'y',
-						  [curDataSmoothed]);
+						  'y',[results.smoothed]);
 		}, updateTimeMs);
 
 		});

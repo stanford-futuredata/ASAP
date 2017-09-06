@@ -19,17 +19,19 @@ def smooth(data, resolution=1000):
     for i in range(len(peaks)-1,-1,-1):
         w = peaks[i]
 
-        if w<lb or w == 1:
+        if w < lb or w == 1:
             break
-
         elif math.sqrt(1 - acf.correlations[w]) * window_size > math.sqrt(1-acf.correlations[window_size])*w:
             continue
 
         smoothed = SMA(data, w, 1)
         metrics = Metrics(smoothed)
-        if metrics.roughness < min_obj and metrics.kurtosis >= orig_kurt:
-            min_obj = metrics.roughness
-            window_size = w
+        if metrics.kurtosis >= orig_kurt:
+            if metrics.roughness < min_obj:
+                min_obj = metrics.roughness
+                window_size = w
+            if (largest_feasible < 0):
+                largest_feasible = i
             lb = round( max(w*math.sqrt( (acf.max_acf -1) / (acf.correlations[w]-1) ), lb) )
 
     if largest_feasible > 0:

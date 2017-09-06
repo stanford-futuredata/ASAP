@@ -76,7 +76,7 @@ function transformRadix2(real, imag) {
         cosTable[i] = Math.cos(2 * Math.PI * i / n);
         sinTable[i] = Math.sin(2 * Math.PI * i / n);
     }
-    
+
     // Bit-reversed addressing permutation
     for (var i = 0; i < n; i++) {
         var j = reverseBits(i, levels);
@@ -258,10 +258,13 @@ function smooth(data, resolution) {
         var smoothed = SMA(data, w, 1);
         metrics = new Metrics(smoothed);
         var roughness = metrics.roughness();
-        if (roughness < minObj && metrics.kurtosis() >= originalKurt) {
-            minObj = roughness;
-            windowSize = w;
+        if (metrics.kurtosis() >= originalKurt) {
+            if (roughness < minObj) {
+                minObj = roughness;
+                windowSize = w;
+            }
             lb = Math.round(Math.max(w * Math.sqrt((acf.maxACF - 1) / (acf.correlations[w] - 1)), lb));
+            if (largestFeasible < 0) { largestFeasible = i; }
         }
     }
     if (largestFeasible > 0) {
@@ -269,9 +272,9 @@ function smooth(data, resolution) {
         lb = Math.max(lb, peaks[largestFeasible] + 1);
     }
     windowSize = binarySearch(lb, tail, data, minObj, originalKurt, windowSize);
+
     return SMA(data, windowSize, 1);
 }
-
 
 
 function SMA(data, range, slide) {

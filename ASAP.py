@@ -3,6 +3,7 @@
 import math
 import numpy.fft
 from decimal import Decimal
+import sys
 
 def smooth(data, resolution=1000):
     ildr        = int( len(data) / resolution )
@@ -221,7 +222,10 @@ def _read_input_csv(args):
     import csv
     with open(args.input_csv, 'r') as ifh:
         icsv = csv.reader(ifh)
-        args._head = icsv.next()
+        if sys.version_info.major == 2:
+            args._head = icsv.next()
+        else:
+            args._head = next(icsv)
         args._rows = list(icsv)
 
         try:

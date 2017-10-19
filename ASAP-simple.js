@@ -27,6 +27,7 @@ function SMA(data, range, slide) {
     var values = [];
 
     for (var i = 0; i < data.length; i ++) {
+        if (isNaN(data[i])) { data[i] = 0; }
         if (i - windowStart >= range || i == data.length - 1) {
             if (i == data.length - 1) {
                 sum += data[i];

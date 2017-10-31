@@ -237,7 +237,10 @@ function binarySearch(head, tail, data, minObj, originalKurt, windowSize) {
 
 
 function smooth(data, resolution) {
-    data = SMA(data, Math.trunc(data.length / resolution), Math.trunc(data.length / resolution));
+    if (resolution < data.length) {
+        data = SMA(data, Math.trunc(data.length / resolution),
+            Math.trunc(data.length / resolution));
+    }
     var acf = new ACF(data, Math.round(data.length / 10));
     var peaks = acf.findPeaks();
     var metrics = new Metrics(data);
@@ -271,8 +274,10 @@ function smooth(data, resolution) {
         if (largestFeasible < peaks.length - 2) { tail = peaks[largestFeasible + 1]; }
         lb = Math.max(lb, peaks[largestFeasible] + 1);
     }
+    console.log(windowSize);
     windowSize = binarySearch(lb, tail, data, minObj, originalKurt, windowSize);
 
+    console.log(windowSize);
     return SMA(data, windowSize, 1);
 }
 

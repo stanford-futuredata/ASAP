@@ -1,5 +1,8 @@
 function smooth(data, resolution) {
-    data = SMA(data, Math.trunc(data.length / resolution), Math.trunc(data.length / resolution));
+    if (resolution < data.length) {
+        data = SMA(data, Math.trunc(data.length / resolution),
+            Math.trunc(data.length / resolution));
+    }
     var metrics = new Metrics(data);
     var originalKurt = metrics.kurtosis();
     var minObj = metrics.roughness();

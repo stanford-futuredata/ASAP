@@ -7,8 +7,9 @@ import sys
 
 def smooth(data, resolution=1000):
     ildr        = int( len(data) / resolution )
-    data        = SMA(data,ildr,ildr)
-    acf         = ACF(data, round(len(data)/10))
+    if ildr > 1:
+        data    = SMA(data,ildr,ildr)
+    acf         = ACF(data, round(len(data) / 10))
     peaks       = acf.peaks
     orig_kurt   = acf.kurtosis
     min_obj     = acf.roughness

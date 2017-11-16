@@ -3,5 +3,5 @@
 [ -n "$(which pytest)" ] || (set -x; pip install pytest)
 
 set -ex
-./ASAP.py -ji Taxi.csv -o test.csv
+./ASAP.py -ji ../Taxi.csv -o test.csv
 pytest -v

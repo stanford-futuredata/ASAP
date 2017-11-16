@@ -274,10 +274,8 @@ function smooth(data, resolution) {
         if (largestFeasible < peaks.length - 2) { tail = peaks[largestFeasible + 1]; }
         lb = Math.max(lb, peaks[largestFeasible] + 1);
     }
-    console.log(windowSize);
     windowSize = binarySearch(lb, tail, data, minObj, originalKurt, windowSize);
 
-    console.log(windowSize);
     return SMA(data, windowSize, 1);
 }
 
@@ -290,11 +288,7 @@ function SMA(data, range, slide) {
 
     for (var i = 0; i < data.length; i ++) {
         if (isNaN(data[i])) { data[i] = 0; }
-        if (i - windowStart >= range || i == data.length - 1) {
-            if (i == data.length - 1) {
-                sum += data[i];
-                count += 1;
-            }
+        if (i - windowStart >= range) {
             values.push(sum / count);
             var oldStart = windowStart;
             while (windowStart < data.length && windowStart - oldStart < slide) {
@@ -305,6 +299,9 @@ function SMA(data, range, slide) {
         }
         sum += data[i];
         count += 1;
+    }
+    if (count == range) {
+        values.push(sum / count);
     }
     return values;
 }

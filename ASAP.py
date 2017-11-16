@@ -47,8 +47,8 @@ def smooth(data, resolution=1000):
 
 def binary_search(head,tail,data,min_obj,orig_kurt,window_size):
     while head <= tail:
-        w = round((head+tail)/2.0)
-        smoothed = SMA(data,w,1)
+        w = int(round((head + tail) / 2.0))
+        smoothed = SMA(data, w, 1)
         metrics  = Metrics(smoothed)
         if metrics.kurtosis >= orig_kurt:
             if metrics.roughness < min_obj:
@@ -59,37 +59,13 @@ def binary_search(head,tail,data,min_obj,orig_kurt,window_size):
             tail = w - 1
     return window_size
 
-def SMA(data, _range, slide):
-    ret = []
-    s = 0.0
-    c = 0.0
-    window_start = 0
-    for i in range(len(data)):
-        if i-window_start >= _range or i==len(data)-1:
-            if i==len(data)-1 or c==0:
-                s += data[i]
-                c += 1
-            ret.append( s/c )
-            old_start = window_start
-            while window_start < len(data) and window_start-old_start < slide:
-                s -= data[window_start]
-                c -= 1
-                window_start += 1
-        s += data[i]
-        c += 1
-    return ret
-
 def moving_average(data, _range):
     ret = numpy.cumsum(data, dtype=float)
     ret[_range:] = ret[_range:] - ret[:-_range]
     return ret[_range - 1:] / _range
 
-def moving_average_slide(data, _range, slide):
-    return moving_average(data, _range)[::slide]
-
-# x = [42,75,3,5,99,22,88]
-# assert SMA(x,3,1) == list(moving_average_slide(x,3,1))
-# assert SMA(x,3,3) == list(moving_average_slide(x,3,3))
+def SMA(data, _range, slide):
+    return list(moving_average(data, _range)[::slide])
 
 class Metrics(object):
     def __init__(self, values):
@@ -215,8 +191,7 @@ def _show_summary(args):
     print("correlations: {0}".format(_show_list(m.correlations)))
     print("peaks:        {0}".format(_show_list(m.peaks)))
 
-    print("SMA(3,1):     {0}".format( _show_list(SMA(args.test_data, 3,1)) ))
-    print("SMA(4,2):     {0}".format( _show_list(SMA(args.test_data, 4,2)) ))
+    print("SMA(4,2):     {0}".format( _show_list(SMA( args.test_data, 4,2 )) ))
     print("smooth():     {0}".format( _show_list(smooth( args.test_data, args.resolution )) ))
 
 def _read_input_csv(args):
@@ -245,6 +220,7 @@ def _write_output_table(args):
 
     if args.no_join:
         if args.output_csv:
+            import csv
             with open(args.output_csv,'w') as ofh:
                 ocsv = csv.writer(ofh)
                 ocsv.writerow(['idx', 'smoothed'])
@@ -256,7 +232,7 @@ def _write_output_table(args):
                 print('\t'.join([str(x) for x in t]))
         exit(0)
 
-    args._head.append('smothed')
+    args._head.append('smoothed')
 
     if args.output_csv:
         if args.output_csv == '-':
@@ -300,7 +276,8 @@ if __name__ == '__main__':
         parser.add_argument('-o', '--output-csv', type=str, help='output the smoothed() data to a new csv')
         parser.add_argument('-c', '--input-column', type=int, default=1,
             help='column of input csv to use as data [default: %(default)s]')
-        parser.add_argument('-j', '--no-join', action='store_true', help='do not attempt to scale and fit output csv data to input csv data')
+        parser.add_argument('-j', '--no-join', default=True,
+            action='store_true', help='do not attempt to scale and fit output csv data to input csv data')
         parser.add_argument('-s', '--show-summary', action='store_true', help="don't output a table, just show a test summary")
         parser.add_argument('-r', '--resolution', type=int, default=1000,
             help='resolution for smooth() [default: %(default)s]')

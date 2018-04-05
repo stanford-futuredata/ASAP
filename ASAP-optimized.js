@@ -237,7 +237,11 @@ function binarySearch(head, tail, data, minObj, originalKurt, windowSize) {
 
 
 function smooth(data, resolution) {
-    if (resolution < data.length) {
+    /* Ignore the last value if it's NaN */
+    if (isNaN(data[data.length-1])) {
+        data = data.slice(0, -1);
+    }
+    if (data.length >= 2 * resolution ) {
         data = SMA(data, Math.trunc(data.length / resolution),
             Math.trunc(data.length / resolution));
     }
@@ -322,7 +326,7 @@ class ACF {
         var fftreal = new Array(len).fill(0);
         var fftimg = new Array(len).fill(0);
         for (var i = 0; i < this.values.length; i += 1) {
-            fftreal[i] = this.values[i];
+            fftreal[i] = this.values[i] - this.mean;
         }
         /* F_R(f) = FFT(X) */
         transform(fftreal, fftimg);
@@ -358,6 +362,13 @@ class ACF {
                     }
                     positive = !positive;
                 }
+            }
+        }
+        /* If there is no autocorrelation peak within the MAX_WINDOW boundary,
+        # try windows from the largest to the smallest */
+        if (peakIndices.length <= 1) {
+            for (var i = 2; i < this.correlations.length; i += 1) {
+                peakIndices.push(i);
             }
         }
         return peakIndices;
